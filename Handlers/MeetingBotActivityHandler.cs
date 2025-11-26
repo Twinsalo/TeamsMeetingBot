@@ -5,6 +5,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using TeamsMeetingBot.Interfaces;
 using TeamsMeetingBot.Models;
+using TeamsMeetingBot.Services;
 
 namespace TeamsMeetingBot.Handlers;
 
@@ -30,12 +31,14 @@ public class MeetingBotActivityHandler : TeamsActivityHandler
     private readonly ISummaryStorageService _summaryStorageService;
     private readonly ILateJoinerService _lateJoinerService;
     private readonly ITelemetryService _telemetryService;
+    private readonly TranscriptionStrategyFactory _strategyFactory;
     private readonly ILogger<MeetingBotActivityHandler> _logger;
     
     // Store active meeting contexts and timers (using ConcurrentDictionary for thread-safety)
     private readonly ConcurrentDictionary<string, MeetingContext> _activeMeetings = new();
     private readonly ConcurrentDictionary<string, Timer> _summaryTimers = new();
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _transcriptionCancellationTokens = new();
+    private readonly ConcurrentDictionary<string, ITranscriptionStrategy> _activeStrategies = new();
 
     public MeetingBotActivityHandler(
         IGraphApiService graphApiService,
@@ -45,6 +48,7 @@ public class MeetingBotActivityHandler : TeamsActivityHandler
         ISummaryStorageService summaryStorageService,
         ILateJoinerService lateJoinerService,
         ITelemetryService telemetryService,
+        TranscriptionStrategyFactory strategyFactory,
         ILogger<MeetingBotActivityHandler> logger)
     {
         _graphApiService = graphApiService;
@@ -54,6 +58,7 @@ public class MeetingBotActivityHandler : TeamsActivityHandler
         _summaryStorageService = summaryStorageService;
         _lateJoinerService = lateJoinerService;
         _telemetryService = telemetryService;
+        _strategyFactory = strategyFactory;
         _logger = logger;
     }
 
@@ -88,11 +93,18 @@ public class MeetingBotActivityHandler : TeamsActivityHandler
 
             _activeMeetings[meetingId] = meetingContext;
 
-            // Step 3: Subscribe to transcription stream (Requirement 1.1, 1.2)
+            // Step 3: Subscribe to transcription stream using configured strategy (Requirement 1.1, 1.2)
             try
             {
-                await StartTranscriptionProcessingAsync(meetingId, cancellationToken);
-                _logger.LogInformation("Transcription subscription started for meeting {MeetingId}", meetingId);
+                var strategy = _strategyFactory.CreateStrategy(config.TranscriptionMethod);
+                _activeStrategies[meetingId] = strategy;
+                
+                await strategy.StartAsync(meetingId, cancellationToken);
+                
+                _logger.LogInformation(
+                    "Transcription subscription started for meeting {MeetingId} using {Method} method",
+                    meetingId,
+                    config.TranscriptionMethod);
             }
             catch (Exception transcriptionEx)
             {
@@ -164,8 +176,11 @@ public class MeetingBotActivityHandler : TeamsActivityHandler
                 cts.Dispose();
             }
 
-            // Also unsubscribe via Graph API service
-            _graphApiService.UnsubscribeFromTranscription(meetingId);
+            // Stop the transcription strategy
+            if (_activeStrategies.TryRemove(meetingId, out var strategy))
+            {
+                await strategy.StopAsync(meetingId);
+            }
 
             // Step 3: Flush any buffered summaries to storage (Requirement 6.1, 6.2)
             if (_transcriptionBufferService.HasSegments(meetingId))

@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using TeamsMeetingBot.Interfaces;
+using TeamsMeetingBot.Services;
 
 namespace TeamsMeetingBot.Controllers;
 
 /// <summary>
-/// Sample controller for receiving Microsoft Graph change notifications for transcription events.
+/// Controller for receiving Microsoft Graph change notifications for transcription events.
 /// 
 /// SETUP INSTRUCTIONS:
 /// 1. Deploy this endpoint to a publicly accessible HTTPS URL
-/// 2. Create a subscription using the GraphApiService or directly via Graph API
-/// 3. Configure your app registration with OnlineMeetingTranscript.Read.All permission
-/// 4. Store the clientState secret securely (e.g., in Azure Key Vault)
+/// 2. Configure GraphWebhook:NotificationUrl in appsettings.json
+/// 3. Configure GraphWebhook:ClientState secret in appsettings.json or Key Vault
+/// 4. Ensure app registration has OnlineMeetingTranscript.Read.All permission
+/// 5. Set TranscriptionMethod to Webhook in meeting configuration
 /// 
 /// WEBHOOK FLOW:
 /// 1. Initial validation: Microsoft sends a validation token, you must echo it back
@@ -23,15 +26,19 @@ public class GraphWebhookController : ControllerBase
 {
     private readonly ILogger<GraphWebhookController> _logger;
     private readonly IConfiguration _configuration;
-    // Inject your transcription processing service here
-    // private readonly ITranscriptionProcessingService _transcriptionService;
+    private readonly IGraphApiService _graphApiService;
+    private readonly WebhookTranscriptionStrategy _webhookStrategy;
 
     public GraphWebhookController(
         ILogger<GraphWebhookController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IGraphApiService graphApiService,
+        WebhookTranscriptionStrategy webhookStrategy)
     {
         _logger = logger;
         _configuration = configuration;
+        _graphApiService = graphApiService;
+        _webhookStrategy = webhookStrategy;
     }
 
     /// <summary>
@@ -124,13 +131,8 @@ public class GraphWebhookController : ControllerBase
             meetingId,
             transcriptId);
 
-        // TODO: Implement transcription processing
-        // 1. Use GraphApiService to fetch the transcript content
-        // 2. Parse the VTT content into TranscriptionSegment objects
-        // 3. Pass segments to TranscriptionBufferService
-        // 4. Trigger summary generation if needed
-
-        await Task.CompletedTask;
+        // Delegate to the webhook strategy for processing
+        await _webhookStrategy.ProcessNotificationAsync(meetingId, transcriptId, _graphApiService);
     }
 }
 

@@ -127,6 +127,14 @@ builder.Services.AddSingleton<ISummaryStorageService, SummaryStorageService>();
 builder.Services.AddSingleton<IConfigurationService, ConfigurationService>();
 builder.Services.AddSingleton<ILateJoinerService, LateJoinerService>();
 
+// Register Graph subscription service for webhook-based transcription
+builder.Services.AddSingleton<GraphSubscriptionService>();
+
+// Register transcription strategies
+builder.Services.AddSingleton<PollingTranscriptionStrategy>();
+builder.Services.AddSingleton<WebhookTranscriptionStrategy>();
+builder.Services.AddSingleton<TranscriptionStrategyFactory>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

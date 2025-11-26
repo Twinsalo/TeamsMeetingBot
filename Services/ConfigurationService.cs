@@ -26,7 +26,8 @@ public class ConfigurationService : IConfigurationService
             SummaryIntervalMinutes = configuration.GetValue<int>("SummarySettings:DefaultIntervalMinutes", 10),
             AutoPostToChat = configuration.GetValue<bool>("SummarySettings:AutoPostToChat", true),
             EnableLateJoinerNotifications = configuration.GetValue<bool>("SummarySettings:EnableLateJoinerNotifications", true),
-            RetentionDays = configuration.GetValue<int>("SummarySettings:RetentionDays", 30)
+            RetentionDays = configuration.GetValue<int>("SummarySettings:RetentionDays", 30),
+            TranscriptionMethod = configuration.GetValue<TranscriptionMethod>("SummarySettings:TranscriptionMethod", TranscriptionMethod.Polling)
         };
 
         var databaseName = configuration["CosmosDb:DatabaseName"] ?? "MeetingSummaries";
@@ -76,7 +77,8 @@ public class ConfigurationService : IConfigurationService
                 SummaryIntervalMinutes = _defaultConfig.SummaryIntervalMinutes,
                 AutoPostToChat = _defaultConfig.AutoPostToChat,
                 EnableLateJoinerNotifications = _defaultConfig.EnableLateJoinerNotifications,
-                RetentionDays = _defaultConfig.RetentionDays
+                RetentionDays = _defaultConfig.RetentionDays,
+                TranscriptionMethod = _defaultConfig.TranscriptionMethod
             };
 
             // Cache the default config for this meeting
@@ -97,7 +99,8 @@ public class ConfigurationService : IConfigurationService
                 SummaryIntervalMinutes = _defaultConfig.SummaryIntervalMinutes,
                 AutoPostToChat = _defaultConfig.AutoPostToChat,
                 EnableLateJoinerNotifications = _defaultConfig.EnableLateJoinerNotifications,
-                RetentionDays = _defaultConfig.RetentionDays
+                RetentionDays = _defaultConfig.RetentionDays,
+                TranscriptionMethod = _defaultConfig.TranscriptionMethod
             };
         }
     }
@@ -157,12 +160,13 @@ public class ConfigurationService : IConfigurationService
 
             _logger.LogInformation(
                 "Configuration for meeting {MeetingId} updated in cache. " +
-                "Interval: {Interval}min, AutoPost: {AutoPost}, LateJoiner: {LateJoiner}, Retention: {Retention}days",
+                "Interval: {Interval}min, AutoPost: {AutoPost}, LateJoiner: {LateJoiner}, Retention: {Retention}days, Method: {Method}",
                 meetingId,
                 config.SummaryIntervalMinutes,
                 config.AutoPostToChat,
                 config.EnableLateJoinerNotifications,
-                config.RetentionDays);
+                config.RetentionDays,
+                config.TranscriptionMethod);
         }
         finally
         {
