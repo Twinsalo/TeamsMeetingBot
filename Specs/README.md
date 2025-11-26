@@ -12,7 +12,7 @@ This directory contains the complete specification for the Teams Meeting Bot, in
 |----------|-------------|--------|
 | **[requirements.md](./requirements.md)** | EARS-formatted requirements with acceptance criteria | ✅ Complete |
 | **[design.md](./design.md)** | Technical design with architecture and components | ✅ Complete |
-| **[tasks.md](./tasks.md)** | Implementation plan with task breakdown | ✅ Complete |
+
 
 ### Enhancement Tracking
 
