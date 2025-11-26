@@ -10,38 +10,36 @@ This directory contains the complete specification for the Teams Meeting Bot, in
 
 | Document | Description | Status |
 |----------|-------------|--------|
-| **[requirements.md](./requirements.md)** | EARS-formatted requirements with acceptance criteria | ✅ Complete |
-| **[design.md](./design.md)** | Technical design with architecture and components | ✅ Complete |
+| **[requirements.md](./Specs/requirements.md)** | EARS-formatted requirements with acceptance criteria | ✅ Complete |
+| **[design.md](./Specs/design.md)** | Technical design with architecture and components | ✅ Complete |
 
 ### Enhancement Tracking
 
 | Document | Description | Status |
 |----------|-------------|--------|
-| **[ENHANCEMENTS.md](./ENHANCEMENTS.md)** | Feature enhancements beyond original spec | ✅ Current |
-| **[CHANGELOG.md](./CHANGELOG.md)** | Version history and change tracking | ✅ Current |
+| **[ENHANCEMENTS.md](./Specs/ENHANCEMENTS.md)** | Feature enhancements beyond original spec | ✅ Current |
+| **[CHANGELOG.md](./Specs/CHANGELOG.md)** | Version history and change tracking | ✅ Current |
 
 ---
 
 ## 🎯 Quick Navigation
 
 ### For Product Managers
-- Start with [requirements.md](./requirements.md) for user stories and acceptance criteria
-- Review [ENHANCEMENTS.md](./ENHANCEMENTS.md) for new features
-- Check [CHANGELOG.md](./CHANGELOG.md) for version history
+- Start with [requirements.md](./Specs/requirements.md) for user stories and acceptance criteria
+- Review [ENHANCEMENTS.md](./Specs/ENHANCEMENTS.md) for new features
+- Check [CHANGELOG.md](./Specs/CHANGELOG.md) for version history
 
 ### For Architects
-- Review [design.md](./design.md) for technical architecture
-- Check [ENHANCEMENTS.md](./ENHANCEMENTS.md) for architectural changes
+- Review [design.md](./Specs/design.md) for technical architecture
+- Check [ENHANCEMENTS.md](./Specs/ENHANCEMENTS.md) for architectural changes
 - See transcription methods section in design document
 
 ### For Developers
-- Follow [tasks.md](./tasks.md) for implementation guidance
-- Reference [design.md](./design.md) for component details
-- Check [CHANGELOG.md](./CHANGELOG.md) for recent changes
+- Reference [design.md](./Specs/design.md) for component details
+- Check [CHANGELOG.md](./Specs/CHANGELOG.md) for recent changes
 
 ### For QA/Testing
-- Use [requirements.md](./requirements.md) for test scenarios
-- Reference [tasks.md](./tasks.md) for implementation verification
+- Use [requirements.md](./Specs/requirements.md) for test scenarios
 - Check acceptance criteria in requirements document
 
 ---
