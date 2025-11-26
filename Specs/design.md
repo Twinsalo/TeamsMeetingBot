@@ -356,6 +356,50 @@ public class MeetingConfiguration
     public bool AutoPostToChat { get; set; } = true;
     public bool EnableLateJoinerNotifications { get; set; } = true;
     public int RetentionDays { get; set; } = 30;
+    public TranscriptionMethod TranscriptionMethod { get; set; } = TranscriptionMethod.Polling;
+}
+
+public enum TranscriptionMethod
+{
+    Polling = 0,   // Traditional polling-based approach
+    Webhook = 1    // Microsoft Graph Change Notifications (event-driven)
+}
+```
+
+### 9. Transcription Strategy Pattern
+
+**Purpose**: Provide pluggable architecture for different transcription retrieval methods
+
+**Interface**:
+```csharp
+public interface ITranscriptionStrategy
+{
+    Task StartAsync(string meetingId, CancellationToken cancellationToken);
+    Task StopAsync(string meetingId);
+    TranscriptionMethod Method { get; }
+}
+```
+
+**Implementations**:
+
+#### Polling Strategy (Default)
+- Periodically polls Graph API for transcription updates
+- Simple setup, no public endpoint required
+- Suitable for development and low-volume scenarios
+- Higher API call volume (~1800 calls/hour per meeting)
+
+#### Webhook Strategy (Production)
+- Uses Microsoft Graph Change Notifications
+- Event-driven, near real-time updates
+- Requires public HTTPS endpoint
+- 99% reduction in API calls (~10 calls/hour per meeting)
+- Automatic subscription management (create, renew, delete)
+
+**Factory**:
+```csharp
+public class TranscriptionStrategyFactory
+{
+    public ITranscriptionStrategy CreateStrategy(TranscriptionMethod method);
 }
 ```
 
@@ -686,9 +730,12 @@ public class BotIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 - **Bot Authentication**: Microsoft App ID and Password (stored in Azure Key Vault)
 - **User Authentication**: Microsoft Entra ID (Azure AD) with OAuth 2.0
 - **API Permissions**: 
-  - `OnlineMeetings.Read.All` (application permission)
-  - `Chat.ReadWrite` (application permission)
-  - `User.Read.All` (application permission)
+  - `OnlineMeetings.Read.All` (application permission) - Required for both methods
+  - `OnlineMeetings.ReadWrite.All` (application permission) - Required for both methods
+  - `Calls.AccessMedia.All` (application permission) - Required for both methods
+  - `Chat.ReadWrite` (application permission) - Required for both methods
+  - `User.Read.All` (application permission) - Required for both methods
+  - `OnlineMeetingTranscript.Read.All` (application permission) - **Required only for Webhook method**
 
 ### Data Protection
 
@@ -766,6 +813,86 @@ Resource Group: rg-teams-meeting-bot-prod
 - **Cosmos DB Autoscale**: Automatic RU scaling based on load
 - **OpenAI Rate Limiting**: Queue-based processing with retry logic
 
+## Transcription Methods
+
+The bot supports two methods for retrieving meeting transcriptions, selectable via configuration:
+
+### Polling Method (Default)
+
+**How it works**:
+- Bot periodically polls Microsoft Graph API for new transcription content
+- Checks for updates every 2-5 seconds
+- Parses VTT (WebVTT) format transcripts
+- Buffers segments in memory
+
+**Advantages**:
+- Simple setup, no public endpoint required
+- Works in any environment (development, on-premises)
+- No webhook validation needed
+- Immediate availability
+
+**Disadvantages**:
+- Higher API call volume (~1800 calls/hour per meeting)
+- Higher latency (2-5 seconds)
+- More resource intensive (continuous polling)
+
+**Use Cases**:
+- Development and testing environments
+- Deployments without public endpoints
+- Low-volume scenarios (<10 concurrent meetings)
+
+### Webhook Method (Recommended for Production)
+
+**How it works**:
+- Bot creates Microsoft Graph subscription for transcription events
+- Microsoft sends HTTP POST notifications when transcripts are available
+- Bot receives notifications at `/api/notifications` endpoint
+- Fetches transcript content on-demand
+- Automatically renews subscriptions every 45 minutes
+
+**Advantages**:
+- Event-driven, near real-time updates (<1 second latency)
+- 99% reduction in API calls (~10 calls/hour per meeting)
+- Lower resource usage (no continuous polling)
+- Better scalability (supports 100+ concurrent meetings)
+
+**Disadvantages**:
+- Requires public HTTPS endpoint
+- More complex setup (webhook validation, subscription management)
+- Additional API permission required (`OnlineMeetingTranscript.Read.All`)
+
+**Use Cases**:
+- Production environments
+- High-volume scenarios (>10 concurrent meetings)
+- Cost optimization requirements
+- Real-time update requirements
+
+### Configuration
+
+```json
+{
+  "SummarySettings": {
+    "TranscriptionMethod": "Polling"  // or "Webhook"
+  },
+  "GraphWebhook": {
+    "NotificationUrl": "https://your-bot.azurewebsites.net",
+    "ClientState": "your-secret-value"
+  }
+}
+```
+
+### Architecture Comparison
+
+**Polling Flow**:
+```
+Meeting → Graph API ← Bot (polls every 2-5s) → Buffer → Summary
+```
+
+**Webhook Flow**:
+```
+Meeting → Graph API → Webhook Notification → Bot → Fetch Content → Buffer → Summary
+```
+
 ## Future Enhancements
 
 1. **Multi-language Support**: Detect language and generate summaries in native language
@@ -773,3 +900,4 @@ Resource Group: rg-teams-meeting-bot-prod
 3. **Integration with Microsoft Loop**: Post summaries to Loop workspace
 4. **Sentiment Analysis**: Track meeting sentiment over time
 5. **Speaker Analytics**: Identify dominant speakers and participation patterns
+6. **Hybrid Transcription**: Automatic failover from webhook to polling if webhook fails

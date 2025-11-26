@@ -13,7 +13,6 @@ This directory contains the complete specification for the Teams Meeting Bot, in
 | **[requirements.md](./requirements.md)** | EARS-formatted requirements with acceptance criteria | ✅ Complete |
 | **[design.md](./design.md)** | Technical design with architecture and components | ✅ Complete |
 
-
 ### Enhancement Tracking
 
 | Document | Description | Status |
@@ -65,7 +64,7 @@ This directory contains the complete specification for the Teams Meeting Bot, in
 ### Design Summary
 
 **Technology Stack**:
-- .NET Core 8.0 / C# 12
+- .NET 10.0 / C# 13
 - Microsoft Bot Framework SDK 4.x
 - Microsoft Graph API
 - Azure OpenAI Service (GPT-4)
