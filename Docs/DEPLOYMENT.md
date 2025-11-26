@@ -23,7 +23,7 @@ Before deploying the Teams Meeting Bot, ensure you have:
 - **Microsoft 365 Tenant** with Teams enabled
 - **Global Administrator** or **Application Administrator** role for API permission consent
 - **Azure CLI** installed (version 2.50.0 or later)
-- **.NET 8.0 SDK** installed for local builds
+- **.NET 10.0 SDK** installed for local builds
 - **Visual Studio 2022** or **VS Code** with C# extension
 - **Teams Developer Portal** access (https://dev.teams.microsoft.com)
 - **PowerShell 7.0+** or **Bash** for deployment scripts
@@ -72,7 +72,7 @@ The Teams Meeting Bot requires the following Azure resources:
 #### 2. App Service
 
 - **Name**: `app-teams-meeting-bot-{environment}`
-- **Runtime**: .NET 8.0
+- **Runtime**: .NET 10.0
 - **Always On**: Enabled (critical for bot availability)
 - **HTTPS Only**: Enabled
 - **Managed Identity**: System-assigned (for Key Vault access)
@@ -382,7 +382,7 @@ If using the webhook transcription method, add:
    - **Resource group**: Select your resource group
    - **Name**: `app-teams-meeting-bot-{environment}`
    - **Publish**: Code
-   - **Runtime stack**: .NET 8 (LTS)
+   - **Runtime stack**: .NET 10
    - **Operating System**: Windows or Linux
    - **Region**: Same as resource group
    - **App Service Plan**: Select the plan created in Step 6
@@ -493,7 +493,7 @@ az webapp create \
   --name $APP_SERVICE \
   --resource-group $RESOURCE_GROUP \
   --plan $APP_SERVICE_PLAN \
-  --runtime "DOTNET|8.0"
+  --runtime "DOTNET|10.0"
 
 # Configure App Service
 az webapp config set \
@@ -749,7 +749,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
     
     - name: Restore dependencies
       run: dotnet restore TeamsMeetingBot/TeamsMeetingBot.csproj
@@ -960,7 +960,7 @@ az cosmosdb sql database list --account-name cosmos-teams-bot-prod --resource-gr
 - [ ] Microsoft 365 tenant with Teams enabled
 - [ ] Global Administrator access for API consent
 - [ ] Azure CLI installed and configured
-- [ ] .NET 8.0 SDK installed
+- [ ] .NET 10.0 SDK installed
 - [ ] Bot registered in Azure AD
 - [ ] Client secret created and stored securely
 

@@ -150,7 +150,7 @@ Created comprehensive deployment documentation covering all aspects of deploying
 - SKU recommendations
 - Configuration details for:
   - App Service Plan (P1v2)
-  - App Service (.NET 8.0)
+  - App Service (.NET 10.0)
   - Cosmos DB (Serverless/Provisioned)
   - Azure OpenAI (GPT-4)
   - Key Vault (Standard)
